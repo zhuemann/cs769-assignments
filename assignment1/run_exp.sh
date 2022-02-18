@@ -31,7 +31,7 @@ python main.py \
 
 # Step 3. Prepare submission:
 ##  3.1. Copy your code to the $CAMPUSID folder
-for file in 'main.py' 'model.py' 'vocab.py' 'setup.py' '.npy'; do
+for file in 'main.py' 'model.py' 'vocab.py' 'setup.py' 'trained_embedding_sst.npy' 'trained_embedding_imdb.npy'; do
 	cp $file ${CAMPUSID}/
 done
 ##  3.2. Compress the $CAMPUSID folder to $CAMPUSID.zip (containing only .py/.txt/.pdf/.sh files)
