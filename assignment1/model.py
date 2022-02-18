@@ -140,6 +140,7 @@ class DanModel(BaseModel):
         self.hidden_layer2.requires_grad_(True)
         self.hidden_layer3.requires_grad_(True)
         torch.nn.init.xavier_uniform_(self.embedding.weight)
+        # self.embedding.requires_grad_(True)
 
 
     def copy_embedding_from_numpy(self, args, vocab, emb_file, emb_size):
