@@ -207,6 +207,7 @@ def main():
             #print(Y_pred)
             train_correct += (Y_pred == Y).sum().item()
 
+
             if train_iter % args.log_niter == 0:
                 gnorm = compute_grad_norm(model)
                 pnorm = compute_param_norm(model)

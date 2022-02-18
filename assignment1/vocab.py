@@ -6,6 +6,7 @@ class Vocab(object):
     def __init__(self, pad=False, unk=False, max_size=None):
         self.word2id = dict()
         self.id2word = dict()
+
         self.pad_id = self.unk_id = None
         if pad:
             self.add('<pad>')
