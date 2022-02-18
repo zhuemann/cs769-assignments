@@ -1,5 +1,6 @@
 from collections import defaultdict
 import os
+import io
 import time
 import random
 import torch
@@ -12,10 +13,15 @@ from vocab import Vocab
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train", type=str, default="data/sst-train.txt")
-    parser.add_argument("--dev", type=str, default="data/sst-dev.txt")
-    parser.add_argument("--test", type=str, default="data/sst-test.txt")
-    parser.add_argument("--emb_file", type=str, default=None)
+    #parser.add_argument("--train", type=str, default="data/sst-train.txt")
+    #parser.add_argument("--dev", type=str, default="data/sst-dev.txt")
+    #parser.add_argument("--test", type=str, default="data/sst-test.txt")
+    parser.add_argument("--train", type=str, default="data/cfimdb-train.txt")
+    parser.add_argument("--dev", type=str, default="data/cfimdb-dev.txt")
+    parser.add_argument("--test", type=str, default="data/cfimdb-test.txt")
+    #parser.add_argument("--emb_file", type=str, default=None)
+    parser.add_argument("--emb_file", type=str, default="crawl-300d-2M.vec")
+    #parser.add_argument("--emb_file", type=str, default="wiki-news-300d-1M.vec")
     parser.add_argument("--emb_size", type=int, default=300)
     parser.add_argument("--hid_size", type=int, default=300)
     parser.add_argument("--hid_layer", type=int, default=3)
@@ -23,11 +29,12 @@ def get_args():
     parser.add_argument("--emb_drop", type=float, default=0.333)
     parser.add_argument("--hid_drop", type=float, default=0.333)
     parser.add_argument("--pooling_method", type=str, default="avg", choices=["sum", "avg", "max"])
-    parser.add_argument("--grad_clip", type=float, default=5.0)
-    parser.add_argument("--max_train_epoch", type=int, default=5)
+    parser.add_argument("--grad_clip", type=float, default=5.00)
+    #parser.add_argument("--max_train_epoch", type=int, default=10)
+    parser.add_argument("--max_train_epoch", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lrate", type=float, default=0.005)
-    parser.add_argument("--lrate_decay", type=float, default=0)  # 0 means no decay!
+    parser.add_argument("--lrate_decay", type=float, default=0)  # 0 means no decay! .0005
     parser.add_argument("--mrate", type=float, default=0.85)
     parser.add_argument("--log_niter", type=int, default=100)
     parser.add_argument("--eval_niter", type=int, default=500)
@@ -79,7 +86,18 @@ def pad_sentences(sents, pad_id):
     Return:
         aug_sents: list(list(int)), |s_1| == |s_i|, for s_i in sents
     """
-    raise NotImplementedError()
+    # loops through and finds the longest sentence length
+    longest_list = 0
+    for i in range(0,len(sents)):
+        sentence_length = len(sents[i])
+        if sentence_length > longest_list:
+            longest_list = sentence_length
+    # loops through again and adds padding to make it the same length as longest sent
+    for i in range(0,len(sents)):
+        padding_needed = longest_list - len(sents[i])
+        for j in range(0,padding_needed):
+            sents[i].append(pad_id)
+    return sents
 
 def compute_grad_norm(model, norm_type=2):
     """
@@ -126,8 +144,10 @@ def evaluate(dataset, model, device, tag_vocab=None, filename=None):
         print(f'  -Save predictions to {filename}')
     return acc/len(predicts)
 
+
 def main():
     args = get_args()
+    print(args)
     _seed = os.environ.get("MINNN_SEED", 12341)
     random.seed(_seed)
     np.random.seed(_seed)
@@ -153,14 +173,16 @@ def main():
     print('nwords', nwords, 'ntags', ntags)
     model = mn.DanModel(args, word_vocab, len(tag_vocab)).to(device)
     loss_func = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adagrad(model.parameters(), lr=args.lrate, lr_decay=args.lrate_decay)
 
+    optimizer = torch.optim.Adagrad(model.parameters(), lr=args.lrate, lr_decay=args.lrate_decay)
+    model.train()
     # Training
     start_time = time.time()
     train_iter = 0
     train_loss = train_example = train_correct = 0
     best_records = (0, 0)  # [best_iter, best_accuracy]
     for epoch in range(args.max_train_epoch):
+        model.train()
         for batch in data_iter(train_data, batch_size=args.batch_size, shuffle=True):
             train_iter += 1
 
@@ -169,6 +191,7 @@ def main():
             Y = torch.LongTensor(batch[1]).to(device)
             # Forward pass: compute the unnormalized scores for P(Y|X)
             scores = model(X)
+            scores = scores.squeeze()
             loss = loss_func(scores, Y)
             # Backpropagation: compute gradients for all parameters
             optimizer.zero_grad()
@@ -181,6 +204,7 @@ def main():
             train_loss += loss.item() * len(batch[0])
             train_example += len(batch[0])
             Y_pred = scores.argmax(1)
+            #print(Y_pred)
             train_correct += (Y_pred == Y).sum().item()
 
             if train_iter % args.log_niter == 0:
@@ -195,6 +219,7 @@ def main():
 
             if train_iter % args.eval_niter == 0:
                 print(f'Evaluate dev data:')
+                model.eval()
                 dev_accuracy = evaluate(dev_data, model, device) 
                 if dev_accuracy > best_records[1]:
                     print(f'  -Update best model at {train_iter}, dev accuracy={dev_accuracy:.4f}')
@@ -203,6 +228,7 @@ def main():
 
     # Load the best model
     model.load(args.model)
+    model.eval()
     evaluate(test_data, model, device, tag_vocab, filename=args.test_output)
     evaluate(dev_data, model, device, tag_vocab, filename=args.dev_output)
 

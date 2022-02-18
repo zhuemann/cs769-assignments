@@ -70,3 +70,5 @@ This file reads a list of tokenized sentences and contruct the vocabulary for wo
 Stanford Sentiment Treebank: https://www.aclweb.org/anthology/D13-1170.pdf
 
 IMDb Reviews: https://openreview.net/pdf?id=Sklgs0NFvr
+
+https://fasttext.cc/docs/en/english-vectors.html

@@ -12,6 +12,7 @@ python main.py \
     --train "data/${PREF}-train.txt" \
     --dev "data/${PREF}-dev.txt" \
     --test "data/${PREF}-test.txt" \
+    --emb_file "wiki-news-300d-1M.vec" \
     --dev_output "${CAMPUSID}/${PREF}-dev-output.txt" \
     --test_output "${CAMPUSID}/${PREF}-test-output.txt" \
     --model "${CAMPUSID}/${PREF}-model.pt"
@@ -22,6 +23,7 @@ python main.py \
     --train "data/${PREF}-train.txt" \
     --dev "data/${PREF}-dev.txt" \
     --test "data/${PREF}-test.txt" \
+    --emb_file "wiki-news-300d-1M.vec" \
     --dev_output "${CAMPUSID}/${PREF}-dev-output.txt" \
     --test_output "${CAMPUSID}/${PREF}-test-output.txt" \
     --model "${CAMPUSID}/${PREF}-model.pt"
