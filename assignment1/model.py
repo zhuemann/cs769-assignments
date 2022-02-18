@@ -207,7 +207,6 @@ class DanModel(BaseModel):
         #print(avg_pool.size())
         #print(self.hidden_layer1.size())
         #avg_pool = self.dropout(avg_pool)
-        print("stuff")
         x = self.hidden_layer1_test(avg_pool)
         #x = torch.matmul(avg_pool, self.hidden_layer1)
 
