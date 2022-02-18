@@ -13,12 +13,12 @@ from vocab import Vocab
 
 def get_args():
     parser = argparse.ArgumentParser()
-    #parser.add_argument("--train", type=str, default="data/sst-train.txt")
-    #parser.add_argument("--dev", type=str, default="data/sst-dev.txt")
-    #parser.add_argument("--test", type=str, default="data/sst-test.txt")
-    parser.add_argument("--train", type=str, default="data/cfimdb-train.txt")
-    parser.add_argument("--dev", type=str, default="data/cfimdb-dev.txt")
-    parser.add_argument("--test", type=str, default="data/cfimdb-test.txt")
+    parser.add_argument("--train", type=str, default="data/sst-train.txt")
+    parser.add_argument("--dev", type=str, default="data/sst-dev.txt")
+    parser.add_argument("--test", type=str, default="data/sst-test.txt")
+    #parser.add_argument("--train", type=str, default="data/cfimdb-train.txt")
+    #parser.add_argument("--dev", type=str, default="data/cfimdb-dev.txt")
+    #parser.add_argument("--test", type=str, default="data/cfimdb-test.txt")
     #parser.add_argument("--emb_file", type=str, default=None)
     parser.add_argument("--emb_file", type=str, default="crawl-300d-2M.vec")
     #parser.add_argument("--emb_file", type=str, default="wiki-news-300d-1M.vec")
@@ -31,7 +31,7 @@ def get_args():
     parser.add_argument("--pooling_method", type=str, default="avg", choices=["sum", "avg", "max"])
     parser.add_argument("--grad_clip", type=float, default=5.00)
     #parser.add_argument("--max_train_epoch", type=int, default=10)
-    parser.add_argument("--max_train_epoch", type=int, default=10)
+    parser.add_argument("--max_train_epoch", type=int, default=5)
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lrate", type=float, default=0.005)
     parser.add_argument("--lrate_decay", type=float, default=0)  # 0 means no decay! .0005
@@ -147,7 +147,6 @@ def evaluate(dataset, model, device, tag_vocab=None, filename=None):
 
 def main():
     args = get_args()
-    print(args)
     _seed = os.environ.get("MINNN_SEED", 12341)
     random.seed(_seed)
     np.random.seed(_seed)
@@ -200,7 +199,7 @@ def main():
                 grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
             # Update model's parameters with gradients
             optimizer.step()
-
+            #print(train_iter)
             train_loss += loss.item() * len(batch[0])
             train_example += len(batch[0])
             Y_pred = scores.argmax(1)
